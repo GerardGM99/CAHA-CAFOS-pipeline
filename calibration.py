@@ -1295,7 +1295,7 @@ def spec_extract(initial_xmin, initial_xmax, initial_ymin, initial_ymax):
 Flux calibrations
 '''
 
-def flux_calib():
+def flux_calib(std_flux_mags=False):
     
     def from_mAB_2_fluxlam(fileabflux, plot=False):
         '''
@@ -1374,7 +1374,7 @@ def flux_calib():
         
         return raw_science
 
-    def apply_flux_calibration(raw_science_file, raw_std_file, abs_flux_std_file, std_flux_mags=False, wmin=3600, wmax=9500, plot=True):
+    def apply_flux_calibration(raw_science_file, raw_std_file, abs_flux_std_file, std_flux_mags=std_flux_mags, wmin=3600, wmax=9500, plot=True):
         '''
         The code applies the flux calibration using the following steps.
         

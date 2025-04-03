@@ -20,7 +20,7 @@ def general_calibrations():
     print('*************************')
     print('MASTER BIAS')
     print('*************************')
-    calib.apply_master_bias(img_code='caf*', plot=True)
+    calib.apply_master_bias(plot=True)
     print('Master BIAS applied')
     
     print('*************************')
@@ -51,8 +51,8 @@ def science():
     calib.spec_extract(x_min, x_max, y_min, y_max)
     
     
-def flux_calibration():
+def flux_calibration(std_flux_mags=False):
     print('*************************')
     print('FLUX CALIBRATION')
     print('*************************')
-    calib.flux_calib()
+    calib.flux_calib(std_flux_mags=std_flux_mags)
