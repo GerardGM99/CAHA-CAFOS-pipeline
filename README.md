@@ -71,6 +71,6 @@ To set up the pipeline, follow these steps:
 
    ```bash
    caf.general_calibrations() # Bias, flats and wavelength calibrations (automatic)
-   caf.science() # Sky substraction, alignment and spectrum extraction (require human inputs)
+   caf.science() # Sky substraction, alignment and spectrum extraction (requires human inputs)
    caf.flux_calibration() # Standard flux calibration
    ```
