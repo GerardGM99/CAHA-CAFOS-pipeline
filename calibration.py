@@ -922,156 +922,162 @@ def sky_substraction():
     
     cont = False
     while cont is False:
-        file_index = int(input(f'Chose file (select index from 0 to {len(summary_science)-1}): '))
-        if file_index > (len(summary_science)-1):
-            print(f'Incorrect index. Chose an index between 0 and {len(summary_science)-1}.')
-        else:
+        file_index = input(f'Chose file (select index from 0 to {len(summary_science)-1}) or "all": ')
+        if file_index == 'all':
+            indexes = list(range(0, len(summary_science)))
             cont = True
-            
-    science_file = summary_science['file'][file_index]
-    input_filename = directory / science_file
-    
-    print('---')
-    data = fits.getdata(input_filename)
-    naxis2, naxis1 = data.shape
-    print(f'NAXIS1={naxis1}')
-    print(f'NAXIS2={naxis2}')
-    header = fits.getheader(input_filename)
-    
-    cunit1 = 1 * u.Unit(header['cunit1'])
-    crpix1 = header['crpix1'] * u.pixel
-    crval1 = header['crval1'] * u.Unit(cunit1)
-    cdelt1 = header['cdelt1'] * u.Unit(cunit1) / u.pixel
-    print(f'crpix1: {crpix1}')
-    print(f'crval1: {crval1}')
-    print(f'cdelt1: {cdelt1}')
-    print(f'cunit1: {cunit1}')
-    
-    # matplotlib.use('Qt5Agg')
-    plt.ion()
-    vmin, vmax = np.percentile(data, [5, 99])
-    for iplot in range(2):
-        if iplot == 0:
-            fig1, ax1 = plt.subplots(figsize=(12, 8))
-            tea_imshow(fig1, ax1, data, vmin=vmin, vmax=vmax, title=input_filename, cmap='gray',
-                        crpix1=crpix1, crval1=crval1, cdelt1=cdelt1, cunit1=cunit1)
-            ax1.tick_params(axis='both', labelsize=25)
-            fig1.canvas.draw()  # Force update
-            fig1.canvas.flush_events()
-            plt.pause(0.1)
         else:
-            fig2, ax2 = plt.subplots(figsize=(12, 8))
-            tea_imshow(fig2, ax2, data, vmin=vmin, vmax=vmax, title=input_filename, cmap='gray', aspect='auto')
-            ax2.tick_params(axis='both', labelsize=25)
-            fig2.canvas.draw()  # Force update
-            fig2.canvas.flush_events()
-            plt.pause(0.1)
-    # plt.tight_layout()
-    # fig1.canvas.draw()  # Force update
-    # fig1.canvas.flush_events()
-    # plt.pause(0.1)
+            indexes = [int(file_index)]
+            if indexes[0] > (len(summary_science)-1):
+                print(f'Incorrect index. Chose an index between 0 and {len(summary_science)-1}.')
+            else:
+                cont = True
     
-    print('---')
-    print('Select two empty background regions from the 2D image. They need to be at each side of the main object trace. They should not contain other traces. INTEGERS ONLY.')
-    
-    cont = False
-    first = True
-    while cont is False:
+    for index in indexes:
+        science_file = summary_science['file'][index]
+        input_filename = directory / science_file
+        
         print('---')
-        skyregion1_min = int(input('Skyregion1 y axis MIN: '))
-        skyregion1_max = int(input('Skyregion1 y axis MAX: '))
-        skyregion2_min = int(input('Skyregion2 y axis MIN: '))
-        skyregion2_max = int(input('Skyregion1 y axis MAX: '))
-        if first:
-            plt.close(fig1)
-            plt.close(fig2)
-        else:
-            plt.close(fig)
+        data = fits.getdata(input_filename)
+        naxis2, naxis1 = data.shape
+        print(f'NAXIS1={naxis1}')
+        print(f'NAXIS2={naxis2}')
+        header = fits.getheader(input_filename)
         
-        # Define good sky regions (iterate with next window)
-        skyregion1 = (skyregion1_min, skyregion1_max)
-        skyregion2 = (skyregion2_min, skyregion2_max)
+        cunit1 = 1 * u.Unit(header['cunit1'])
+        crpix1 = header['crpix1'] * u.pixel
+        crval1 = header['crval1'] * u.Unit(cunit1)
+        cdelt1 = header['cdelt1'] * u.Unit(cunit1) / u.pixel
+        print(f'crpix1: {crpix1}')
+        print(f'crval1: {crval1}')
+        print(f'cdelt1: {cdelt1}')
+        print(f'cunit1: {cunit1}')
         
-        indices_sky = np.r_[skyregion1[0]:(skyregion1[1]+1), 
-                            skyregion2[0]:(skyregion2[1]+1)]
+        # matplotlib.use('Qt5Agg')
+        plt.ion()
+        vmin, vmax = np.percentile(data, [5, 99])
+        for iplot in range(2):
+            if iplot == 0:
+                fig1, ax1 = plt.subplots(figsize=(12, 8))
+                tea_imshow(fig1, ax1, data, vmin=vmin, vmax=vmax, title=input_filename, cmap='gray',
+                            crpix1=crpix1, crval1=crval1, cdelt1=cdelt1, cunit1=cunit1)
+                ax1.tick_params(axis='both', labelsize=25)
+                fig1.canvas.draw()  # Force update
+                fig1.canvas.flush_events()
+                plt.pause(0.1)
+            else:
+                fig2, ax2 = plt.subplots(figsize=(12, 8))
+                tea_imshow(fig2, ax2, data, vmin=vmin, vmax=vmax, title=input_filename, cmap='gray', aspect='auto')
+                ax2.tick_params(axis='both', labelsize=25)
+                fig2.canvas.draw()  # Force update
+                fig2.canvas.flush_events()
+                plt.pause(0.1)
+        # plt.tight_layout()
+        # fig1.canvas.draw()  # Force update
+        # fig1.canvas.flush_events()
+        # plt.pause(0.1)
         
-        #We fit the sky level
-        fig, ax = plt.subplots(figsize=(12, 6))
-        xp = np.arange(naxis2)
-        yp = np.mean(data[:, 300:1001], axis=1)
-        ax.plot(xp, yp, label='mean spatial profile')
-        ax.set_xlabel('Y axis (array index)')
-        ax.set_ylabel('Number of counts')
-        ax.set_title(input_filename)
+        print('---')
+        print('Select two empty background regions from the 2D image. They need to be at each side of the main object trace. They should not contain other traces. INTEGERS ONLY.')
         
-        # fit of the sky level
+        cont = False
+        first = True
+        while cont is False:
+            print('---')
+            skyregion1_min = int(input('Skyregion1 y axis MIN: '))
+            skyregion1_max = int(input('Skyregion1 y axis MAX: '))
+            skyregion2_min = int(input('Skyregion2 y axis MIN: '))
+            skyregion2_max = int(input('Skyregion1 y axis MAX: '))
+            if first:
+                plt.close(fig1)
+                plt.close(fig2)
+            else:
+                plt.close(fig)
+            
+            # Define good sky regions (iterate with next window)
+            skyregion1 = (skyregion1_min, skyregion1_max)
+            skyregion2 = (skyregion2_min, skyregion2_max)
+            
+            indices_sky = np.r_[skyregion1[0]:(skyregion1[1]+1), 
+                                skyregion2[0]:(skyregion2[1]+1)]
+            
+            #We fit the sky level
+            fig, ax = plt.subplots(figsize=(12, 6))
+            xp = np.arange(naxis2)
+            yp = np.mean(data[:, 300:1001], axis=1)
+            ax.plot(xp, yp, label='mean spatial profile')
+            ax.set_xlabel('Y axis (array index)')
+            ax.set_ylabel('Number of counts')
+            ax.set_title(input_filename)
+            
+            # fit of the sky level
+            xfit = indices_sky
+            yfit = yp[indices_sky]
+            poly_funct, yres, reject = polfit_residuals_with_sigma_rejection(
+                x=xfit,
+                y=yfit,
+                deg=1,# you can change the order of the fit
+                times_sigma_reject=3
+            )
+            xpredict = np.arange(naxis2)
+            ypredict = poly_funct(xpredict)
+            ax.plot(xpredict, ypredict, color='C2', ls='-', label='fitted sky level')
+            ax.plot(xfit[reject], yfit[reject], 'rx', label='rejected points')
+            ax.legend()
+            
+            # display sky regions
+            ymin, ymax = ax.get_ylim()
+            for r in [skyregion1, skyregion2]:
+                ax.axvline(r[0], lw=1, color='C1')
+                ax.axvline(r[1], lw=1, color='C1')
+                rect = patches.Rectangle((r[0], ymin), r[1]-r[0], ymax-ymin, facecolor='C1', alpha=0.2)
+                ax.add_patch(rect)
+            
+            fig.canvas.draw()  # Force update
+            fig.canvas.flush_events()
+            plt.pause(0.1)
+            
+            quest = input('Are you okay with the background selection? (Type "yes" if so): ')
+            if quest in ['Yes', 'yes', 'Y', 'y']:
+                cont = True
+                plt.close(fig)
+            else:
+                first = False
+            
+        data_sky = data[indices_sky]
+        # initialize 2D full frame sky image
+        data_sky_fullframe = np.zeros((naxis2, naxis1))
+        
+        # fit each image column
         xfit = indices_sky
-        yfit = yp[indices_sky]
-        poly_funct, yres, reject = polfit_residuals_with_sigma_rejection(
-            x=xfit,
-            y=yfit,
-            deg=1,# you can change the order of the fit
-            times_sigma_reject=3
-        )
         xpredict = np.arange(naxis2)
-        ypredict = poly_funct(xpredict)
-        ax.plot(xpredict, ypredict, color='C2', ls='-', label='fitted sky level')
-        ax.plot(xfit[reject], yfit[reject], 'rx', label='rejected points')
-        ax.legend()
         
-        # display sky regions
-        ymin, ymax = ax.get_ylim()
-        for r in [skyregion1, skyregion2]:
-            ax.axvline(r[0], lw=1, color='C1')
-            ax.axvline(r[1], lw=1, color='C1')
-            rect = patches.Rectangle((r[0], ymin), r[1]-r[0], ymax-ymin, facecolor='C1', alpha=0.2)
-            ax.add_patch(rect)
-        
-        fig.canvas.draw()  # Force update
-        fig.canvas.flush_events()
-        plt.pause(0.1)
-        
-        quest = input('Are you okay with the background selection? (Type "yes" if so): ')
-        if quest in ['Yes', 'yes', 'Y', 'y']:
-            cont = True
+        for i in tqdm(range(naxis1)):
+            yfit = data_sky[:, i]
+            poly_funct, yres, reject = polfit_residuals_with_sigma_rejection(
+                x=xfit,
+                y=yfit,
+                deg=1,
+                times_sigma_reject=3
+            )
+            data_sky_fullframe[:, i] = poly_funct(xpredict)
+            
+        for data_, title in zip([data, data_sky_fullframe],
+                               ['data', 'data_sky_fullframe']):
+            fig, ax = plt.subplots(figsize=(15, 5))
+            tea_imshow(fig, ax, data_, vmin=vmin, vmax=vmax, title=title, cmap='gray',
+                       crpix1=crpix1, crval1=crval1, cdelt1=cdelt1, cunit1=cunit1)
+            plt.tight_layout()
+            plt.show(block=False)
+            # fig.canvas.draw()  # Force update
+            # fig.canvas.flush_events()
+            plt.pause(5)
             plt.close(fig)
-        else:
-            first = False
+            
+        data_sky_subtracted = data - data_sky_fullframe
         
-    data_sky = data[indices_sky]
-    # initialize 2D full frame sky image
-    data_sky_fullframe = np.zeros((naxis2, naxis1))
-    
-    # fit each image column
-    xfit = indices_sky
-    xpredict = np.arange(naxis2)
-    
-    for i in tqdm(range(naxis1)):
-        yfit = data_sky[:, i]
-        poly_funct, yres, reject = polfit_residuals_with_sigma_rejection(
-            x=xfit,
-            y=yfit,
-            deg=1,
-            times_sigma_reject=3
-        )
-        data_sky_fullframe[:, i] = poly_funct(xpredict)
-        
-    for data_, title in zip([data, data_sky_fullframe],
-                           ['data', 'data_sky_fullframe']):
-        fig, ax = plt.subplots(figsize=(15, 5))
-        tea_imshow(fig, ax, data_, vmin=vmin, vmax=vmax, title=title, cmap='gray',
-                   crpix1=crpix1, crval1=crval1, cdelt1=cdelt1, cunit1=cunit1)
-        plt.tight_layout()
-        plt.show(block=False)
-        # fig.canvas.draw()  # Force update
-        # fig.canvas.flush_events()
-        plt.pause(5)
-        plt.close(fig)
-        
-    data_sky_subtracted = data - data_sky_fullframe
-    
-    hdu = fits.PrimaryHDU(data=data_sky_subtracted, header=header)
-    hdu.writeto(f'{directory}/s{science_file}', overwrite=True)
+        hdu = fits.PrimaryHDU(data=data_sky_subtracted, header=header)
+        hdu.writeto(f'{directory}/s{science_file}', overwrite=True)
  
     
 '''
@@ -1094,63 +1100,50 @@ def spec_align():
     
     cont = False
     while cont is False:
-        file_index = int(input(f'Chose file (select index from 0 to {len(summary_science)-1}): '))
-        if file_index > (len(summary_science)-1):
-            print(f'Incorrect index. Chose an index between 0 and {len(summary_science)-1}.')
-        else:
+        file_index = input(f'Chose file (select index from 0 to {len(summary_science)-1}) or "all": ')
+        if file_index == 'all':
+            indexes = list(range(0, len(summary_science)))
             cont = True
-            
-    science_file = summary_science['file'][file_index]
-    input_filename = science_file
+        else:
+            indexes = [int(file_index)]
+            if indexes[0] > (len(summary_science)-1):
+                print(f'Incorrect index. Chose an index between 0 and {len(summary_science)-1}.')
+            else:
+                cont = True
     
-    data = fits.getdata(directory / input_filename)
-    header = fits.getheader(directory / input_filename)
-    # Remove nans from data
-    data[np.isnan(data)] = 0
-    
-    cunit1 = 1 * u.Unit(header['cunit1'])
-    crpix1 = header['crpix1'] * u.pixel
-    crval1 = header['crval1'] * u.Unit(cunit1)
-    cdelt1 = header['cdelt1'] * u.Unit(cunit1) / u.pixel
-    ctype1 = header['ctype1']
-    ax_max = header['NAXIS1']-1
-    print('---')
-    print(f'crpix1: {crpix1}')
-    print(f'crval1: {crval1}')
-    print(f'cdelt1: {cdelt1}')
-    print(f'cunit1: {cunit1}')
-    print(f'ctype1: {ctype1}')
-    print(f'X axis max: {ax_max}')
-    print('---')
-    
-    vmin, vmax = np.percentile(data, [5, 99])
-    
-    fig, ax = plt.subplots(figsize=(15, 5))
-    tea_imshow(fig, ax, data, vmin=vmin, vmax=vmax, title=input_filename,
-               cmap='gray', aspect='auto')
-    ax.tick_params(axis='both', labelsize=25)
-    # plt.tight_layout()
-    # plt.show()
-    fig.canvas.draw()  # Force update
-    fig.canvas.flush_events()
-    plt.pause(0.1)
-    
-    print('Chose the x and the y ranges with the spectral trace IN the window, to align the spectum. INTEGERS ONLY')
+    xmin_list = []
+    xmax_list = []
+    ymin_list = []
+    ymax_list = []
+    for index in indexes:
+        science_file = summary_science['file'][index]
+        input_filename = science_file
         
-    cont = False
-    while cont is False:
+        data = fits.getdata(directory / input_filename)
+        header = fits.getheader(directory / input_filename)
+        # Remove nans from data
+        data[np.isnan(data)] = 0
+        
+        cunit1 = 1 * u.Unit(header['cunit1'])
+        crpix1 = header['crpix1'] * u.pixel
+        crval1 = header['crval1'] * u.Unit(cunit1)
+        cdelt1 = header['cdelt1'] * u.Unit(cunit1) / u.pixel
+        ctype1 = header['ctype1']
+        ax_max = header['NAXIS1']-1
         print('---')
-        x_min = int(input('x min: '))
-        x_max = int(input('x max: '))
-        y_min = int(input('y min: '))
-        y_max = int(input('y max: '))
-        plt.close(fig)
+        print(f'crpix1: {crpix1}')
+        print(f'crval1: {crval1}')
+        print(f'cdelt1: {cdelt1}')
+        print(f'cunit1: {cunit1}')
+        print(f'ctype1: {ctype1}')
+        print(f'X axis max: {ax_max}')
+        print('---')
+        
+        vmin, vmax = np.percentile(data, [5, 99])
         
         fig, ax = plt.subplots(figsize=(15, 5))
         tea_imshow(fig, ax, data, vmin=vmin, vmax=vmax, title=input_filename,
                    cmap='gray', aspect='auto')
-        ax.set_ylim(y_min, y_max)
-        ax.set_xlim(x_min, x_max)
         ax.tick_params(axis='both', labelsize=25)
         # plt.tight_layout()
         # plt.show()
@@ -1158,26 +1151,55 @@ def spec_align():
         fig.canvas.flush_events()
         plt.pause(0.1)
         
-        quest = input('Are you okay with the selected ranges? (Type "yes" if so): ')
-        if quest in ['Yes', 'yes', 'Y', 'y']:
-            cont = True
+        print('Chose the x and the y ranges with the spectral trace IN the window, to align the spectum. INTEGERS ONLY')
+            
+        cont = False
+        while cont is False:
+            print('---')
+            x_min = int(input('x min: '))
+            x_max = int(input('x max: '))
+            y_min = int(input('y min: '))
+            y_max = int(input('y max: '))
             plt.close(fig)
+            
+            fig, ax = plt.subplots(figsize=(15, 5))
+            tea_imshow(fig, ax, data, vmin=vmin, vmax=vmax, title=input_filename,
+                       cmap='gray', aspect='auto')
+            ax.set_ylim(y_min, y_max)
+            ax.set_xlim(x_min, x_max)
+            ax.tick_params(axis='both', labelsize=25)
+            # plt.tight_layout()
+            # plt.show()
+            fig.canvas.draw()  # Force update
+            fig.canvas.flush_events()
+            plt.pause(0.1)
+            
+            quest = input('Are you okay with the selected ranges? (Type "yes" if so): ')
+            if quest in ['Yes', 'yes', 'Y', 'y']:
+                cont = True
+                plt.close(fig)
+        
+        
+        data_straight = fit_sdistortion(
+            data=data,
+            ns_min=y_min,
+            ns_max=y_max,
+            nc_min=x_min,
+            nc_max=x_max,
+            median_size=(1, 51),
+            plots=True
+        )
+        
+        hdu = fits.PrimaryHDU(data=data_straight, header=header)
+        hdu.writeto(f'{directory}/d{input_filename}', overwrite=True)
     
-    
-    data_straight = fit_sdistortion(
-        data=data,
-        ns_min=y_min,
-        ns_max=y_max,
-        nc_min=x_min,
-        nc_max=x_max,
-        median_size=(1, 51),
-        plots=True
-    )
-    
-    hdu = fits.PrimaryHDU(data=data_straight, header=header)
-    hdu.writeto(f'{directory}/d{input_filename}', overwrite=True)
-    
-    return x_min, x_max, y_min, y_max
+        xmin_list.append(x_min)
+        xmax_list.append(x_max)
+        ymin_list.append(y_min)
+        ymax_list.append(y_max)
+        
+    return xmin_list, xmax_list, ymin_list, ymax_list
+
 
 '''
 Extraction of the spectra
@@ -1199,98 +1221,111 @@ def spec_extract(initial_xmin, initial_xmax, initial_ymin, initial_ymax):
     
     cont = False
     while cont is False:
-        file_index = int(input(f'Chose file (select index from 0 to {len(summary_science)-1}): '))
-        if file_index > (len(summary_science)-1):
-            print(f'Incorrect index. Chose an index between 0 and {len(summary_science)-1}.')
-        else:
+        file_index = input(f'Chose file (select index from 0 to {len(summary_science)-1}) or "all": ')
+        if file_index == 'all':
+            indexes = list(range(0, len(summary_science)))
             cont = True
-            
-    science_file = summary_science['file'][file_index]
-    input_filename = science_file
-    
-    data = fits.getdata(directory / input_filename)
-    header = fits.getheader(directory / input_filename)
-    
-    cunit1 = 1 * u.Unit(header['cunit1'])
-    crpix1 = header['crpix1'] * u.pixel
-    crval1 = header['crval1'] * u.Unit(cunit1)
-    cdelt1 = header['cdelt1'] * u.Unit(cunit1) / u.pixel
-    naxis2, naxis1 = data.shape
-
-    vmin, vmax = np.percentile(data, [5, 99])
-
-    for iplot in range(2):
-        if iplot == 0:
-            fig1, ax1 = plt.subplots(figsize=(15, 5))
-            tea_imshow(fig1, ax1, data, vmin=0, vmax=500, title=input_filename,
-                       cmap='gray', aspect='auto')
-            fig1.canvas.draw()  # Force update
-            fig1.canvas.flush_events()
-            plt.pause(0.1)
-        if iplot == 1:
-            fig2, ax2 = plt.subplots(figsize=(15, 5))
-            tea_imshow(fig2, ax2, data, vmin=0, vmax=500, title=input_filename,
-                       cmap='gray', aspect='auto')
-            ax2.set_ylim(initial_ymin, initial_ymax)
-            ax2.set_xlim(initial_xmin, initial_xmax)
-            fig2.canvas.draw()  # Force update
-            fig2.canvas.flush_events()
-            plt.pause(0.1)
-        # plt.tight_layout()
-        # plt.show()
-
-    print('Chose the y range to extract the spectum. INTEGERS ONLY')
-        
-    cont = False
-    first = True
-    while cont is False:
-        print('---')
-        ns1 = int(input('y min: '))
-        ns2 = int(input('y max: '))
-        if first:
-            plt.close(fig1)
-            plt.close(fig2)
         else:
-            plt.close(fig)
+            indexes = [int(file_index)]
+            if indexes[0] > (len(summary_science)-1):
+                print(f'Incorrect index. Chose an index between 0 and {len(summary_science)-1}.')
+            else:
+                cont = True
+                
+    for k, index in enumerate(indexes):      
+        science_file = summary_science['file'][index]
+        input_filename = science_file
         
-        fig, ax = plt.subplots(figsize=(15, 5))
-        tea_imshow(fig, ax, data, vmin=0, vmax=500, title=input_filename,
-                   cmap='gray', aspect='auto')
-        ax.set_ylim(ns1, ns2)
-        ax.set_xlim(initial_xmin, initial_xmax)
-        ax.tick_params(axis='both', labelsize=25)
-        # plt.tight_layout()
-        # plt.show()
-        fig.canvas.draw()  # Force update
-        fig.canvas.flush_events()
-        plt.pause(0.1)
+        data = fits.getdata(directory / input_filename)
+        header = fits.getheader(directory / input_filename)
         
-        quest = input('Are you okay with the selected range? (Type "yes" if so): ')
-        if quest in ['Yes', 'yes', 'Y', 'y']:
-            cont = True
-            plt.close(fig)
-        else:
-            first = False
+        cunit1 = 1 * u.Unit(header['cunit1'])
+        crpix1 = header['crpix1'] * u.pixel
+        crval1 = header['crval1'] * u.Unit(cunit1)
+        cdelt1 = header['cdelt1'] * u.Unit(cunit1) / u.pixel
+        naxis2, naxis1 = data.shape
+    
+        vmin, vmax = np.percentile(data, [5, 99])
+        
+        kymin = initial_ymin[k]
+        kymax = initial_ymax[k]
+        kxmin = initial_xmin[k]
+        kxmax = initial_xmax[k]
+    
+        for iplot in range(2):
+            if iplot == 0:
+                fig1, ax1 = plt.subplots(figsize=(15, 5))
+                tea_imshow(fig1, ax1, data, vmin=0, vmax=500, title=input_filename,
+                           cmap='gray', aspect='auto')
+                fig1.canvas.draw()  # Force update
+                fig1.canvas.flush_events()
+                plt.pause(0.1)
+            if iplot == 1:
+                fig2, ax2 = plt.subplots(figsize=(15, 5))
+                tea_imshow(fig2, ax2, data, vmin=0, vmax=500, title=input_filename,
+                           cmap='gray', aspect='auto')
+                ax2.set_ylim(kymin, kymax)
+                ax2.set_xlim(kxmin, kxmax)
+                fig2.canvas.draw()  # Force update
+                fig2.canvas.flush_events()
+                plt.pause(0.1)
+            # plt.tight_layout()
+            # plt.show()
+    
+        print('Chose the y range to extract the spectum. INTEGERS ONLY')
             
-    spectrum = np.sum(data[ns1:(ns2+1), :], axis=0)
-    
-    wavelength = crval1 + ((np.arange(naxis1) + 1)*u.pixel - crpix1) * cdelt1
-    
-    wavelength.to(u.Angstrom)
-    
-    fig, ax = plt.subplots(figsize=(12, 5))
-    ax.plot(wavelength.to(u.Angstrom), spectrum)
-    #ax.set_xlim(4000, 10000)
-    # ax.set_ylim(0, 1500)
-    ax.set_xlabel('Wavelength (Angstrom)')
-    ax.set_ylabel('Flux (number of counts)')
-    plt.title (input_filename)
-       
-    hdu = fits.PrimaryHDU(data=spectrum[np.newaxis, :], header=header)
-    hdu.writeto(f'{directory}/spectra1D_{input_filename}', overwrite=True)
-    print(f'[CONGRATS] 1D spectrum succesfully saved to: {directory}/spectra1D_{input_filename}')
-    plt.ioff()
-    plt.show()
+        cont = False
+        first = True
+        while cont is False:
+            print('---')
+            ns1 = int(input('y min: '))
+            ns2 = int(input('y max: '))
+            if first:
+                plt.close(fig1)
+                plt.close(fig2)
+            else:
+                plt.close(fig)
+            
+            fig, ax = plt.subplots(figsize=(15, 5))
+            tea_imshow(fig, ax, data, vmin=0, vmax=500, title=input_filename,
+                       cmap='gray', aspect='auto')
+            ax.set_ylim(ns1, ns2)
+            ax.set_xlim(kxmin, kxmax)
+            ax.tick_params(axis='both', labelsize=25)
+            # plt.tight_layout()
+            # plt.show()
+            fig.canvas.draw()  # Force update
+            fig.canvas.flush_events()
+            plt.pause(0.1)
+            
+            quest = input('Are you okay with the selected range? (Type "yes" if so): ')
+            if quest in ['Yes', 'yes', 'Y', 'y']:
+                cont = True
+                plt.close(fig)
+            else:
+                first = False
+                
+        spectrum = np.sum(data[ns1:(ns2+1), :], axis=0)
+        
+        wavelength = crval1 + ((np.arange(naxis1) + 1)*u.pixel - crpix1) * cdelt1
+        
+        wavelength.to(u.Angstrom)
+        
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.plot(wavelength.to(u.Angstrom), spectrum)
+        #ax.set_xlim(4000, 10000)
+        # ax.set_ylim(0, 1500)
+        ax.set_xlabel('Wavelength (Angstrom)')
+        ax.set_ylabel('Flux (number of counts)')
+        plt.title (input_filename)
+           
+        hdu = fits.PrimaryHDU(data=spectrum[np.newaxis, :], header=header)
+        hdu.writeto(f'{directory}/spectra1D_{input_filename}', overwrite=True)
+        print(f'[CONGRATS] 1D spectrum succesfully saved to: {directory}/spectra1D_{input_filename}')
+        plt.ioff()
+        plt.show()
+        if file_index == 'all':
+            plt.close()
 
 '''
 Flux calibrations
