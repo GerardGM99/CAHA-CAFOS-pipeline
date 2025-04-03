@@ -1288,6 +1288,7 @@ def spec_extract(initial_xmin, initial_xmax, initial_ymin, initial_ymax):
        
     hdu = fits.PrimaryHDU(data=spectrum[np.newaxis, :], header=header)
     hdu.writeto(f'{directory}/spectra1D_{input_filename}', overwrite=True)
+    print(f'[CONGRATS] 1D spectrum succesfully saved to: {directory}/spectra1D_{input_filename}')
     plt.ioff()
     plt.show()
 
