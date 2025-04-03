@@ -19,20 +19,20 @@ Adapted by Maria Montguió, Hugo Traning, Nadejda Blagorodnova and Gerard Garcia
 
 To set up the pipeline, follow these steps:
 
-1. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/GerardGM99/CAHA-CAFOS-pipeline.git
-   cd CAHA-CAFOS-pipeline
-   ```
-
-2. **Set Up the Environment:**
+1. **Set Up the Environment:**
 
    It is recommended to use [Anaconda](https://www.anaconda.com/products/distribution) to manage the environment. Create a new environment and install the required packages:
 
    ```bash
    conda create --name cafos_pipeline python=3.9
    conda activate cafos_pipeline
+   ```
+   
+2. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/GerardGM99/CAHA-CAFOS-pipeline.git
+   cd CAHA-CAFOS-pipeline
    ```
 
 3. **Install Dependencies:**
@@ -54,7 +54,7 @@ To set up the pipeline, follow these steps:
 
 1. **Prepare Your Data:**
 
-   Put your raw spectroscopic images and associated calibration files (bias, flats, arcs) in a new folder inside the working directory.
+   Put your raw spectroscopic images and associated calibration files (bias, flats, arcs) in a new folder inside the working directory. Make sure they are properly tagged (IMAGETYP in the fits files should be 'science' for science images and standard stars, 'flat' for flats, 'bias' for bias, etc).
 
 2. **Setup:**
 
