@@ -64,7 +64,7 @@ def init():
     PLOTDIR = os.path.join(DATADIR, "plots")
     if not os.path.isdir(PLOTDIR):
         os.makedirs(PLOTDIR)
-    imge_code = input(' * What letter/word do all your input files begin with? (end input with *, exemple: caf*) ')
+    imge_code = input(' * What letter/word do all your input files begin with? (end input with *, exemple: caf*): ')
     # plt.ion()
     print(' * Functions used for the reduction')
     print('   - general_calibrations(): bias, flats, and wave calibrations')
