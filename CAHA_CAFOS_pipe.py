@@ -55,6 +55,4 @@ def flux_calibration():
     print('*************************')
     print('FLUX CALIBRATION')
     print('*************************')
-    flux_cal = input('Apply flux calibration? (Type "yes" or "no"): ')
-    if flux_cal in ['Yes', 'yes', 'Y', 'y']:
-        calib.flux_calib()
+    calib.flux_calib()
